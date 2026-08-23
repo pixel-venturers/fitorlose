@@ -1,0 +1,15 @@
+import Link from "next/link";
+
+export default function Layout({ children }) {
+  return (
+    <div>
+      <div className="text-sm text-muted-foreground mb-4">
+        <Link href="/" className="text-primary">
+          Home
+        </Link>{" "}
+        / Terms and Conditions
+      </div>
+      <div>{children}</div>
+    </div>
+  );
+}
