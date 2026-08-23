@@ -74,7 +74,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # sync package.json (+ lockfile) to the release version — no tag/commit from npm
-          npm version "${VERSION#v}" --no-git-tag-version --force || true
+          npm version "${VERSION#v}" --no-git-tag-version
 
           git add package.json 2>/dev/null || git add package.json
           git commit -m "chore(release): $VERSION"
