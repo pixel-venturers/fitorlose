@@ -1,0 +1,3358 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.activity",
+    "label": "Create table \"activity\"",
+    "summary": "Creates table \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"activity\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"activity\"",
+        "sql": "CREATE TABLE \"public\".\"activity\" (\n  \"activityType\" text DEFAULT 'OTHER' NOT NULL,\n  \"calories\" int4,\n  \"challengeId\" text,\n  \"connectedAccountId\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"distanceMeters\" numeric,\n  \"durationSeconds\" int4,\n  \"endedAt\" timestamptz,\n  \"externalActivityId\" text,\n  \"id\" text NOT NULL,\n  \"provider\" text,\n  \"raw\" json,\n  \"source\" text,\n  \"sourceKind\" text DEFAULT 'DEVICE_RECORDED' NOT NULL,\n  \"startedAt\" timestamptz NOT NULL,\n  \"steps\" int4,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"activity_activityType_check_e31c05a8\" CHECK (\"activityType\" IN ('RUN', 'WALK', 'CYCLE', 'SWIM', 'WORKOUT', 'STRENGTH', 'OTHER')),\n  CONSTRAINT \"activity_provider_check_9a96a16a\" CHECK (\"provider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')),\n  CONSTRAINT \"activity_sourceKind_check_b628cd5f\" CHECK (\"sourceKind\" IN ('DEVICE_RECORDED', 'MANUALLY_ENTERED', 'IMPORTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"activity\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.auditLog",
+    "label": "Create table \"auditLog\"",
+    "summary": "Creates table \"auditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "auditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"auditLog\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"auditLog\"",
+        "sql": "CREATE TABLE \"public\".\"auditLog\" (\n  \"action\" text NOT NULL,\n  \"actorId\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"entityId\" text,\n  \"entityType\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"ip\" text,\n  \"metadata\" json,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"auditLog\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.challenge",
+    "label": "Create table \"challenge\"",
+    "summary": "Creates table \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"challenge\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"challenge\"",
+        "sql": "CREATE TABLE \"public\".\"challenge\" (\n  \"amount\" numeric NOT NULL,\n  \"categoryId\" text NOT NULL,\n  \"coverGradient\" text,\n  \"coverImageUrl\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currency\" text DEFAULT 'INR' NOT NULL,\n  \"deletedAt\" timestamptz,\n  \"description\" text,\n  \"durationDays\" int4 NOT NULL,\n  \"endDate\" timestamptz,\n  \"frequencyPerWeek\" int4,\n  \"id\" text NOT NULL,\n  \"ownerId\" text NOT NULL,\n  \"progressPercent\" int4 DEFAULT 0 NOT NULL,\n  \"progressValue\" numeric,\n  \"requirementType\" text DEFAULT 'TOTAL' NOT NULL,\n  \"settledAt\" timestamptz,\n  \"slug\" text NOT NULL,\n  \"startDate\" timestamptz,\n  \"startingValue\" numeric,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"targetValue\" numeric,\n  \"title\" text NOT NULL,\n  \"unit\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"verificationProvider\" text,\n  \"verificationType\" text DEFAULT 'MANUAL' NOT NULL,\n  \"visibility\" text DEFAULT 'PUBLIC' NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"challenge_currency_check_6ca03d30\" CHECK (\"currency\" IN ('INR', 'USD')),\n  CONSTRAINT \"challenge_requirementType_check_078cfbcf\" CHECK (\"requirementType\" IN ('DAILY', 'TOTAL', 'FREQUENCY')),\n  CONSTRAINT \"challenge_status_check_05088bce\" CHECK (\"status\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')),\n  CONSTRAINT \"challenge_verificationProvider_check_3dda4a7f\" CHECK (\"verificationProvider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')),\n  CONSTRAINT \"challenge_verificationType_check_4262913b\" CHECK (\"verificationType\" IN ('AUTOMATIC', 'MANUAL', 'HYBRID')),\n  CONSTRAINT \"challenge_visibility_check_bae0adb7\" CHECK (\"visibility\" IN ('PUBLIC', 'ANONYMOUS', 'PRIVATE'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"challenge\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.challengeCategory",
+    "label": "Create table \"challengeCategory\"",
+    "summary": "Creates table \"challengeCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "challengeCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"challengeCategory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"challengeCategory\"",
+        "sql": "CREATE TABLE \"public\".\"challengeCategory\" (\n  \"activityType\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"defaultVerification\" text DEFAULT 'MANUAL' NOT NULL,\n  \"description\" text,\n  \"id\" text NOT NULL,\n  \"label\" text NOT NULL,\n  \"slug\" text NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"unit\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"challengeCategory_activityType_check_e31c05a8\" CHECK (\"activityType\" IN ('RUN', 'WALK', 'CYCLE', 'SWIM', 'WORKOUT', 'STRENGTH', 'OTHER')),\n  CONSTRAINT \"challengeCategory_defaultVerification_check_41a92ef2\" CHECK (\"defaultVerification\" IN ('AUTOMATIC', 'MANUAL', 'HYBRID'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"challengeCategory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.challengeStatusHistory",
+    "label": "Create table \"challengeStatusHistory\"",
+    "summary": "Creates table \"challengeStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "challengeStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"challengeStatusHistory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeStatusHistory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"challengeStatusHistory\"",
+        "sql": "CREATE TABLE \"public\".\"challengeStatusHistory\" (\n  \"challengeId\" text NOT NULL,\n  \"changedById\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"fromStatus\" text,\n  \"id\" text NOT NULL,\n  \"note\" text,\n  \"toStatus\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"challengeStatusHistory_fromStatus_check_bf35c4e9\" CHECK (\"fromStatus\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')),\n  CONSTRAINT \"challengeStatusHistory_toStatus_check_54390bb3\" CHECK (\"toStatus\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"challengeStatusHistory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeStatusHistory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.connectedAccount",
+    "label": "Create table \"connectedAccount\"",
+    "summary": "Creates table \"connectedAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "connectedAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"connectedAccount\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"connectedAccount\"",
+        "sql": "CREATE TABLE \"public\".\"connectedAccount\" (\n  \"accessTokenEnc\" text,\n  \"connected\" bool DEFAULT true NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"lastSyncedAt\" timestamptz,\n  \"provider\" text NOT NULL,\n  \"providerUserId\" text,\n  \"refreshTokenEnc\" text,\n  \"scopes\" text,\n  \"tokenExpiresAt\" timestamptz,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"connectedAccount_provider_check_9a96a16a\" CHECK (\"provider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"connectedAccount\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.dispute",
+    "label": "Create table \"dispute\"",
+    "summary": "Creates table \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dispute\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dispute\"",
+        "sql": "CREATE TABLE \"public\".\"dispute\" (\n  \"challengeId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"openedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"reason\" text NOT NULL,\n  \"resolution\" text,\n  \"resolvedAt\" timestamptz,\n  \"resolvedById\" text,\n  \"status\" text DEFAULT 'OPEN' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"dispute_status_check_675564e1\" CHECK (\"status\" IN ('OPEN', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dispute\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.fitnessProvider",
+    "label": "Create table \"fitnessProvider\"",
+    "summary": "Creates table \"fitnessProvider\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "fitnessProvider"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"fitnessProvider\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"fitnessProvider\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"fitnessProvider\"",
+        "sql": "CREATE TABLE \"public\".\"fitnessProvider\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"enabled\" bool DEFAULT true NOT NULL,\n  \"id\" text NOT NULL,\n  \"key\" text NOT NULL,\n  \"name\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"fitnessProvider_key_check_3c1ae973\" CHECK (\"key\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"fitnessProvider\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"fitnessProvider\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.payment",
+    "label": "Create table \"payment\"",
+    "summary": "Creates table \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"payment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"payment\"",
+        "sql": "CREATE TABLE \"public\".\"payment\" (\n  \"amount\" numeric NOT NULL,\n  \"challengeId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currency\" text DEFAULT 'INR' NOT NULL,\n  \"id\" text NOT NULL,\n  \"idempotencyKey\" text NOT NULL,\n  \"provider\" text NOT NULL,\n  \"providerOrderId\" text,\n  \"providerPaymentId\" text,\n  \"rawWebhook\" json,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"type\" text DEFAULT 'COMMITMENT' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"payment_currency_check_6ca03d30\" CHECK (\"currency\" IN ('INR', 'USD')),\n  CONSTRAINT \"payment_provider_check_61463170\" CHECK (\"provider\" IN ('DODO', 'PAYU')),\n  CONSTRAINT \"payment_status_check_a1a44b14\" CHECK (\"status\" IN ('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'REWARDED')),\n  CONSTRAINT \"payment_type_check_1ee7b6dd\" CHECK (\"type\" IN ('COMMITMENT', 'REWARD', 'REFUND'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"payment\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.settlement",
+    "label": "Create table \"settlement\"",
+    "summary": "Creates table \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"settlement\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"settlement\"",
+        "sql": "CREATE TABLE \"public\".\"settlement\" (\n  \"amount\" numeric NOT NULL,\n  \"challengeId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currency\" text DEFAULT 'INR' NOT NULL,\n  \"id\" text NOT NULL,\n  \"idempotencyKey\" text NOT NULL,\n  \"processedById\" text,\n  \"result\" text NOT NULL,\n  \"settledAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"transactionId\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  \"verifiedAt\" timestamptz,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"settlement_currency_check_6ca03d30\" CHECK (\"currency\" IN ('INR', 'USD')),\n  CONSTRAINT \"settlement_result_check_e1a094bf\" CHECK (\"result\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')),\n  CONSTRAINT \"settlement_status_check_541f7571\" CHECK (\"status\" IN ('PENDING', 'PROCESSING', 'SETTLED', 'FAILED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"settlement\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shareRecord",
+    "label": "Create table \"shareRecord\"",
+    "summary": "Creates table \"shareRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shareRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shareRecord\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shareRecord\"",
+        "sql": "CREATE TABLE \"public\".\"shareRecord\" (\n  \"challengeId\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"page\" text,\n  \"platform\" text NOT NULL,\n  \"shareType\" text,\n  \"userId\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shareRecord\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.submission",
+    "label": "Create table \"submission\"",
+    "summary": "Creates table \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"submission\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"submission\"",
+        "sql": "CREATE TABLE \"public\".\"submission\" (\n  \"challengeId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dayNumber\" int4,\n  \"fileUrl\" text,\n  \"flagged\" bool DEFAULT false NOT NULL,\n  \"id\" text NOT NULL,\n  \"label\" text,\n  \"note\" text,\n  \"reviewedAt\" timestamptz,\n  \"reviewedById\" text,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"type\" text DEFAULT 'PHOTO' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"submission_status_check_0760bcc2\" CHECK (\"status\" IN ('PENDING', 'VERIFIED', 'REJECTED')),\n  CONSTRAINT \"submission_type_check_f033ad84\" CHECK (\"type\" IN ('PHOTO', 'VIDEO', 'SCREENSHOT', 'DOCUMENT', 'ACTIVITY', 'OTHER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"submission\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.transaction",
+    "label": "Create table \"transaction\"",
+    "summary": "Creates table \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"transaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"transaction\"",
+        "sql": "CREATE TABLE \"public\".\"transaction\" (\n  \"amount\" numeric NOT NULL,\n  \"challengeId\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currency\" text DEFAULT 'INR' NOT NULL,\n  \"id\" text NOT NULL,\n  \"idempotencyKey\" text NOT NULL,\n  \"note\" text,\n  \"paymentId\" text,\n  \"reference\" text,\n  \"status\" text DEFAULT 'SUCCEEDED' NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"transaction_currency_check_6ca03d30\" CHECK (\"currency\" IN ('INR', 'USD')),\n  CONSTRAINT \"transaction_status_check_a1a44b14\" CHECK (\"status\" IN ('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'REWARDED')),\n  CONSTRAINT \"transaction_type_check_1ee7b6dd\" CHECK (\"type\" IN ('COMMITMENT', 'REWARD', 'REFUND'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"transaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.user",
+    "label": "Create table \"user\"",
+    "summary": "Creates table \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"user\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"user\"",
+        "sql": "CREATE TABLE \"public\".\"user\" (\n  \"clerkId\" text NOT NULL,\n  \"country\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currency\" text DEFAULT 'INR' NOT NULL,\n  \"deletedAt\" timestamptz,\n  \"email\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"name\" text,\n  \"role\" text DEFAULT 'USER' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"user_currency_check_6ca03d30\" CHECK (\"currency\" IN ('INR', 'USD')),\n  CONSTRAINT \"user_role_check_1954e8c0\" CHECK (\"role\" IN ('USER', 'ADMIN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"user\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.activity.activity_provider_externalActivityId_key",
+    "label": "Add unique constraint on \"activity\" (provider, externalActivityId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "activity_provider_externalActivityId_key",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"activity_provider_externalActivityId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_provider_externalActivityId_key",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"activity_provider_externalActivityId_key\"",
+        "sql": "ALTER TABLE \"public\".\"activity\" ADD CONSTRAINT \"activity_provider_externalActivityId_key\" UNIQUE (\"provider\", \"externalActivityId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"activity_provider_externalActivityId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_provider_externalActivityId_key",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.challenge.challenge_slug_key",
+    "label": "Add unique constraint on \"challenge\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "challenge_slug_key",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"challenge_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_slug_key",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"challenge_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"challenge\" ADD CONSTRAINT \"challenge_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"challenge_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_slug_key",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.challengeCategory.challengeCategory_slug_key",
+    "label": "Add unique constraint on \"challengeCategory\" (slug)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "challengeCategory_slug_key",
+        "table": "challengeCategory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"challengeCategory_slug_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challengeCategory_slug_key",
+          "public",
+          "\"public\".\"challengeCategory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"challengeCategory_slug_key\"",
+        "sql": "ALTER TABLE \"public\".\"challengeCategory\" ADD CONSTRAINT \"challengeCategory_slug_key\" UNIQUE (\"slug\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"challengeCategory_slug_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challengeCategory_slug_key",
+          "public",
+          "\"public\".\"challengeCategory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.connectedAccount.connectedAccount_userId_provider_key",
+    "label": "Add unique constraint on \"connectedAccount\" (userId, provider)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "connectedAccount_userId_provider_key",
+        "table": "connectedAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"connectedAccount_userId_provider_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "connectedAccount_userId_provider_key",
+          "public",
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"connectedAccount_userId_provider_key\"",
+        "sql": "ALTER TABLE \"public\".\"connectedAccount\" ADD CONSTRAINT \"connectedAccount_userId_provider_key\" UNIQUE (\"userId\", \"provider\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"connectedAccount_userId_provider_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "connectedAccount_userId_provider_key",
+          "public",
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.fitnessProvider.fitnessProvider_key_key",
+    "label": "Add unique constraint on \"fitnessProvider\" (key)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "fitnessProvider_key_key",
+        "table": "fitnessProvider"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"fitnessProvider_key_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fitnessProvider_key_key",
+          "public",
+          "\"public\".\"fitnessProvider\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"fitnessProvider_key_key\"",
+        "sql": "ALTER TABLE \"public\".\"fitnessProvider\" ADD CONSTRAINT \"fitnessProvider_key_key\" UNIQUE (\"key\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"fitnessProvider_key_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "fitnessProvider_key_key",
+          "public",
+          "\"public\".\"fitnessProvider\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.payment.payment_providerPaymentId_key",
+    "label": "Add unique constraint on \"payment\" (providerPaymentId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "payment_providerPaymentId_key",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"payment_providerPaymentId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_providerPaymentId_key",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"payment_providerPaymentId_key\"",
+        "sql": "ALTER TABLE \"public\".\"payment\" ADD CONSTRAINT \"payment_providerPaymentId_key\" UNIQUE (\"providerPaymentId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"payment_providerPaymentId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_providerPaymentId_key",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.payment.payment_idempotencyKey_key",
+    "label": "Add unique constraint on \"payment\" (idempotencyKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "payment_idempotencyKey_key",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"payment_idempotencyKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_idempotencyKey_key",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"payment_idempotencyKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"payment\" ADD CONSTRAINT \"payment_idempotencyKey_key\" UNIQUE (\"idempotencyKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"payment_idempotencyKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_idempotencyKey_key",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.settlement.settlement_challengeId_key",
+    "label": "Add unique constraint on \"settlement\" (challengeId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "settlement_challengeId_key",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"settlement_challengeId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_challengeId_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"settlement_challengeId_key\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\" ADD CONSTRAINT \"settlement_challengeId_key\" UNIQUE (\"challengeId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"settlement_challengeId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_challengeId_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.settlement.settlement_transactionId_key",
+    "label": "Add unique constraint on \"settlement\" (transactionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "settlement_transactionId_key",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"settlement_transactionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_transactionId_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"settlement_transactionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\" ADD CONSTRAINT \"settlement_transactionId_key\" UNIQUE (\"transactionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"settlement_transactionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_transactionId_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.settlement.settlement_idempotencyKey_key",
+    "label": "Add unique constraint on \"settlement\" (idempotencyKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "settlement_idempotencyKey_key",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"settlement_idempotencyKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_idempotencyKey_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"settlement_idempotencyKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\" ADD CONSTRAINT \"settlement_idempotencyKey_key\" UNIQUE (\"idempotencyKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"settlement_idempotencyKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_idempotencyKey_key",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.transaction.transaction_idempotencyKey_key",
+    "label": "Add unique constraint on \"transaction\" (idempotencyKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "transaction_idempotencyKey_key",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"transaction_idempotencyKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_idempotencyKey_key",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"transaction_idempotencyKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"transaction\" ADD CONSTRAINT \"transaction_idempotencyKey_key\" UNIQUE (\"idempotencyKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"transaction_idempotencyKey_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_idempotencyKey_key",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_clerkId_key",
+    "label": "Add unique constraint on \"user\" (clerkId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_clerkId_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_clerkId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_clerkId_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_clerkId_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_clerkId_key\" UNIQUE (\"clerkId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_clerkId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_clerkId_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_email_key",
+    "label": "Add unique constraint on \"user\" (email)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_email_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_email_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_email_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_email_key\" UNIQUE (\"email\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_email_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_email_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.activity.activity_activityType_startedAt_idx_5595c7c7",
+    "label": "Create index \"activity_activityType_startedAt_idx_5595c7c7\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "activity_activityType_startedAt_idx_5595c7c7",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"activity_activityType_startedAt_idx_5595c7c7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_activityType_startedAt_idx_5595c7c7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"activity_activityType_startedAt_idx_5595c7c7\"",
+        "sql": "CREATE INDEX \"activity_activityType_startedAt_idx_5595c7c7\" ON \"public\".\"activity\" (\"activityType\", \"startedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"activity_activityType_startedAt_idx_5595c7c7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_activityType_startedAt_idx_5595c7c7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.activity.activity_challengeId_idx_73b8115d",
+    "label": "Create index \"activity_challengeId_idx_73b8115d\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "activity_challengeId_idx_73b8115d",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"activity_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"activity_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"activity_challengeId_idx_73b8115d\" ON \"public\".\"activity\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"activity_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.activity.activity_connectedAccountId_idx_2443fc65",
+    "label": "Create index \"activity_connectedAccountId_idx_2443fc65\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "activity_connectedAccountId_idx_2443fc65",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"activity_connectedAccountId_idx_2443fc65\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_connectedAccountId_idx_2443fc65\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"activity_connectedAccountId_idx_2443fc65\"",
+        "sql": "CREATE INDEX \"activity_connectedAccountId_idx_2443fc65\" ON \"public\".\"activity\" (\"connectedAccountId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"activity_connectedAccountId_idx_2443fc65\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_connectedAccountId_idx_2443fc65\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.activity.activity_userId_idx_a489d58a",
+    "label": "Create index \"activity_userId_idx_a489d58a\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "activity_userId_idx_a489d58a",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"activity_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"activity_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"activity_userId_idx_a489d58a\" ON \"public\".\"activity\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"activity_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"activity_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.auditLog.auditLog_actorId_idx_a58f6b4b",
+    "label": "Create index \"auditLog_actorId_idx_a58f6b4b\" on \"auditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "auditLog_actorId_idx_a58f6b4b",
+        "table": "auditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"auditLog_actorId_idx_a58f6b4b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_actorId_idx_a58f6b4b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"auditLog_actorId_idx_a58f6b4b\"",
+        "sql": "CREATE INDEX \"auditLog_actorId_idx_a58f6b4b\" ON \"public\".\"auditLog\" (\"actorId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"auditLog_actorId_idx_a58f6b4b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_actorId_idx_a58f6b4b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.auditLog.auditLog_createdAt_idx_9575dbd7",
+    "label": "Create index \"auditLog_createdAt_idx_9575dbd7\" on \"auditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "auditLog_createdAt_idx_9575dbd7",
+        "table": "auditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"auditLog_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"auditLog_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"auditLog_createdAt_idx_9575dbd7\" ON \"public\".\"auditLog\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"auditLog_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.auditLog.auditLog_entityType_entityId_idx_ea0fa809",
+    "label": "Create index \"auditLog_entityType_entityId_idx_ea0fa809\" on \"auditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "auditLog_entityType_entityId_idx_ea0fa809",
+        "table": "auditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"auditLog_entityType_entityId_idx_ea0fa809\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_entityType_entityId_idx_ea0fa809\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"auditLog_entityType_entityId_idx_ea0fa809\"",
+        "sql": "CREATE INDEX \"auditLog_entityType_entityId_idx_ea0fa809\" ON \"public\".\"auditLog\" (\"entityType\", \"entityId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"auditLog_entityType_entityId_idx_ea0fa809\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"auditLog_entityType_entityId_idx_ea0fa809\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_categoryId_idx_15c304f2",
+    "label": "Create index \"challenge_categoryId_idx_15c304f2\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_categoryId_idx_15c304f2",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_categoryId_idx_15c304f2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_categoryId_idx_15c304f2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_categoryId_idx_15c304f2\"",
+        "sql": "CREATE INDEX \"challenge_categoryId_idx_15c304f2\" ON \"public\".\"challenge\" (\"categoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_categoryId_idx_15c304f2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_categoryId_idx_15c304f2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_ownerId_idx_e2d0c1ef",
+    "label": "Create index \"challenge_ownerId_idx_e2d0c1ef\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_ownerId_idx_e2d0c1ef",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_ownerId_idx_e2d0c1ef\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_ownerId_idx_e2d0c1ef\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_ownerId_idx_e2d0c1ef\"",
+        "sql": "CREATE INDEX \"challenge_ownerId_idx_e2d0c1ef\" ON \"public\".\"challenge\" (\"ownerId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_ownerId_idx_e2d0c1ef\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_ownerId_idx_e2d0c1ef\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_status_amount_idx_838e8d6a",
+    "label": "Create index \"challenge_status_amount_idx_838e8d6a\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_status_amount_idx_838e8d6a",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_status_amount_idx_838e8d6a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_status_amount_idx_838e8d6a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_status_amount_idx_838e8d6a\"",
+        "sql": "CREATE INDEX \"challenge_status_amount_idx_838e8d6a\" ON \"public\".\"challenge\" (\"status\", \"amount\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_status_amount_idx_838e8d6a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_status_amount_idx_838e8d6a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_status_idx_e98638ab",
+    "label": "Create index \"challenge_status_idx_e98638ab\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_status_idx_e98638ab",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"challenge_status_idx_e98638ab\" ON \"public\".\"challenge\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_visibility_idx_01c0466b",
+    "label": "Create index \"challenge_visibility_idx_01c0466b\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_visibility_idx_01c0466b",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_visibility_idx_01c0466b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_visibility_idx_01c0466b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_visibility_idx_01c0466b\"",
+        "sql": "CREATE INDEX \"challenge_visibility_idx_01c0466b\" ON \"public\".\"challenge\" (\"visibility\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_visibility_idx_01c0466b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_visibility_idx_01c0466b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challenge.challenge_visibility_status_idx_13ecb6bb",
+    "label": "Create index \"challenge_visibility_status_idx_13ecb6bb\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challenge_visibility_status_idx_13ecb6bb",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challenge_visibility_status_idx_13ecb6bb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_visibility_status_idx_13ecb6bb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challenge_visibility_status_idx_13ecb6bb\"",
+        "sql": "CREATE INDEX \"challenge_visibility_status_idx_13ecb6bb\" ON \"public\".\"challenge\" (\"visibility\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challenge_visibility_status_idx_13ecb6bb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challenge_visibility_status_idx_13ecb6bb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.challengeStatusHistory.challengeStatusHistory_challengeId_idx_73b8115d",
+    "label": "Create index \"challengeStatusHistory_challengeId_idx_73b8115d\" on \"challengeStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "challengeStatusHistory_challengeId_idx_73b8115d",
+        "table": "challengeStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"challengeStatusHistory_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeStatusHistory_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"challengeStatusHistory_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"challengeStatusHistory_challengeId_idx_73b8115d\" ON \"public\".\"challengeStatusHistory\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"challengeStatusHistory_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"challengeStatusHistory_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.connectedAccount.connectedAccount_userId_idx_a489d58a",
+    "label": "Create index \"connectedAccount_userId_idx_a489d58a\" on \"connectedAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "connectedAccount_userId_idx_a489d58a",
+        "table": "connectedAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"connectedAccount_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"connectedAccount_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"connectedAccount_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"connectedAccount_userId_idx_a489d58a\" ON \"public\".\"connectedAccount\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"connectedAccount_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"connectedAccount_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dispute.dispute_challengeId_idx_73b8115d",
+    "label": "Create index \"dispute_challengeId_idx_73b8115d\" on \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dispute_challengeId_idx_73b8115d",
+        "table": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dispute_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dispute_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"dispute_challengeId_idx_73b8115d\" ON \"public\".\"dispute\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dispute_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dispute.dispute_status_idx_e98638ab",
+    "label": "Create index \"dispute_status_idx_e98638ab\" on \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dispute_status_idx_e98638ab",
+        "table": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dispute_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dispute_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"dispute_status_idx_e98638ab\" ON \"public\".\"dispute\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dispute_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dispute.dispute_userId_idx_a489d58a",
+    "label": "Create index \"dispute_userId_idx_a489d58a\" on \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dispute_userId_idx_a489d58a",
+        "table": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dispute_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dispute_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"dispute_userId_idx_a489d58a\" ON \"public\".\"dispute\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dispute_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dispute_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.payment.payment_challengeId_idx_73b8115d",
+    "label": "Create index \"payment_challengeId_idx_73b8115d\" on \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "payment_challengeId_idx_73b8115d",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"payment_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"payment_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"payment_challengeId_idx_73b8115d\" ON \"public\".\"payment\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"payment_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.payment.payment_status_idx_e98638ab",
+    "label": "Create index \"payment_status_idx_e98638ab\" on \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "payment_status_idx_e98638ab",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"payment_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"payment_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"payment_status_idx_e98638ab\" ON \"public\".\"payment\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"payment_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.payment.payment_userId_idx_a489d58a",
+    "label": "Create index \"payment_userId_idx_a489d58a\" on \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "payment_userId_idx_a489d58a",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"payment_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"payment_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"payment_userId_idx_a489d58a\" ON \"public\".\"payment\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"payment_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.settlement.settlement_status_idx_e98638ab",
+    "label": "Create index \"settlement_status_idx_e98638ab\" on \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "settlement_status_idx_e98638ab",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"settlement_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"settlement_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"settlement_status_idx_e98638ab\" ON \"public\".\"settlement\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"settlement_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.settlement.settlement_userId_idx_a489d58a",
+    "label": "Create index \"settlement_userId_idx_a489d58a\" on \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "settlement_userId_idx_a489d58a",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"settlement_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"settlement_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"settlement_userId_idx_a489d58a\" ON \"public\".\"settlement\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"settlement_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"settlement_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shareRecord.shareRecord_challengeId_idx_73b8115d",
+    "label": "Create index \"shareRecord_challengeId_idx_73b8115d\" on \"shareRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shareRecord_challengeId_idx_73b8115d",
+        "table": "shareRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shareRecord_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shareRecord_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"shareRecord_challengeId_idx_73b8115d\" ON \"public\".\"shareRecord\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shareRecord_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shareRecord.shareRecord_userId_idx_a489d58a",
+    "label": "Create index \"shareRecord_userId_idx_a489d58a\" on \"shareRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shareRecord_userId_idx_a489d58a",
+        "table": "shareRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shareRecord_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shareRecord_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"shareRecord_userId_idx_a489d58a\" ON \"public\".\"shareRecord\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shareRecord_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shareRecord_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.submission.submission_challengeId_idx_73b8115d",
+    "label": "Create index \"submission_challengeId_idx_73b8115d\" on \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "submission_challengeId_idx_73b8115d",
+        "table": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"submission_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"submission_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"submission_challengeId_idx_73b8115d\" ON \"public\".\"submission\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"submission_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.submission.submission_status_idx_e98638ab",
+    "label": "Create index \"submission_status_idx_e98638ab\" on \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "submission_status_idx_e98638ab",
+        "table": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"submission_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"submission_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"submission_status_idx_e98638ab\" ON \"public\".\"submission\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"submission_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.submission.submission_userId_idx_a489d58a",
+    "label": "Create index \"submission_userId_idx_a489d58a\" on \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "submission_userId_idx_a489d58a",
+        "table": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"submission_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"submission_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"submission_userId_idx_a489d58a\" ON \"public\".\"submission\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"submission_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"submission_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transaction.transaction_challengeId_idx_73b8115d",
+    "label": "Create index \"transaction_challengeId_idx_73b8115d\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transaction_challengeId_idx_73b8115d",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transaction_challengeId_idx_73b8115d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_challengeId_idx_73b8115d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transaction_challengeId_idx_73b8115d\"",
+        "sql": "CREATE INDEX \"transaction_challengeId_idx_73b8115d\" ON \"public\".\"transaction\" (\"challengeId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transaction_challengeId_idx_73b8115d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_challengeId_idx_73b8115d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transaction.transaction_paymentId_idx_b2fe9a10",
+    "label": "Create index \"transaction_paymentId_idx_b2fe9a10\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transaction_paymentId_idx_b2fe9a10",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transaction_paymentId_idx_b2fe9a10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_paymentId_idx_b2fe9a10\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transaction_paymentId_idx_b2fe9a10\"",
+        "sql": "CREATE INDEX \"transaction_paymentId_idx_b2fe9a10\" ON \"public\".\"transaction\" (\"paymentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transaction_paymentId_idx_b2fe9a10\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_paymentId_idx_b2fe9a10\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transaction.transaction_status_idx_e98638ab",
+    "label": "Create index \"transaction_status_idx_e98638ab\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transaction_status_idx_e98638ab",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transaction_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transaction_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"transaction_status_idx_e98638ab\" ON \"public\".\"transaction\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transaction_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transaction.transaction_type_idx_b6b604ea",
+    "label": "Create index \"transaction_type_idx_b6b604ea\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transaction_type_idx_b6b604ea",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transaction_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transaction_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"transaction_type_idx_b6b604ea\" ON \"public\".\"transaction\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transaction_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.transaction.transaction_userId_idx_a489d58a",
+    "label": "Create index \"transaction_userId_idx_a489d58a\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "transaction_userId_idx_a489d58a",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"transaction_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"transaction_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"transaction_userId_idx_a489d58a\" ON \"public\".\"transaction\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"transaction_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"transaction_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.user.user_email_idx_46df9cad",
+    "label": "Create index \"user_email_idx_46df9cad\" on \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "user_email_idx_46df9cad",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"user_email_idx_46df9cad\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user_email_idx_46df9cad\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"user_email_idx_46df9cad\"",
+        "sql": "CREATE INDEX \"user_email_idx_46df9cad\" ON \"public\".\"user\" (\"email\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"user_email_idx_46df9cad\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user_email_idx_46df9cad\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.user.user_role_idx_2c1ddf83",
+    "label": "Create index \"user_role_idx_2c1ddf83\" on \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "user_role_idx_2c1ddf83",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"user_role_idx_2c1ddf83\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user_role_idx_2c1ddf83\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"user_role_idx_2c1ddf83\"",
+        "sql": "CREATE INDEX \"user_role_idx_2c1ddf83\" ON \"public\".\"user\" (\"role\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"user_role_idx_2c1ddf83\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"user_role_idx_2c1ddf83\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.activity.activity_userId_fkey",
+    "label": "Add foreign key \"activity_userId_fkey\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "activity_userId_fkey",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"activity_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_userId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"activity_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"activity\"\nADD CONSTRAINT \"activity_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"activity_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_userId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.activity.activity_challengeId_fkey",
+    "label": "Add foreign key \"activity_challengeId_fkey\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "activity_challengeId_fkey",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"activity_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_challengeId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"activity_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"activity\"\nADD CONSTRAINT \"activity_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"activity_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_challengeId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.activity.activity_connectedAccountId_fkey",
+    "label": "Add foreign key \"activity_connectedAccountId_fkey\" on \"activity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "activity_connectedAccountId_fkey",
+        "table": "activity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"activity_connectedAccountId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_connectedAccountId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"activity_connectedAccountId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"activity\"\nADD CONSTRAINT \"activity_connectedAccountId_fkey\"\nFOREIGN KEY (\"connectedAccountId\")\nREFERENCES \"public\".\"connectedAccount\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"activity_connectedAccountId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "activity_connectedAccountId_fkey",
+          "public",
+          "\"public\".\"activity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.challenge.challenge_ownerId_fkey",
+    "label": "Add foreign key \"challenge_ownerId_fkey\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "challenge_ownerId_fkey",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"challenge_ownerId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_ownerId_fkey",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"challenge_ownerId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"challenge\"\nADD CONSTRAINT \"challenge_ownerId_fkey\"\nFOREIGN KEY (\"ownerId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"challenge_ownerId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_ownerId_fkey",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.challenge.challenge_categoryId_fkey",
+    "label": "Add foreign key \"challenge_categoryId_fkey\" on \"challenge\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "challenge_categoryId_fkey",
+        "table": "challenge"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"challenge_categoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_categoryId_fkey",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"challenge_categoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"challenge\"\nADD CONSTRAINT \"challenge_categoryId_fkey\"\nFOREIGN KEY (\"categoryId\")\nREFERENCES \"public\".\"challengeCategory\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"challenge_categoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challenge_categoryId_fkey",
+          "public",
+          "\"public\".\"challenge\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.challengeStatusHistory.challengeStatusHistory_challengeId_fkey",
+    "label": "Add foreign key \"challengeStatusHistory_challengeId_fkey\" on \"challengeStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "challengeStatusHistory_challengeId_fkey",
+        "table": "challengeStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"challengeStatusHistory_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challengeStatusHistory_challengeId_fkey",
+          "public",
+          "\"public\".\"challengeStatusHistory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"challengeStatusHistory_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"challengeStatusHistory\"\nADD CONSTRAINT \"challengeStatusHistory_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"challengeStatusHistory_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "challengeStatusHistory_challengeId_fkey",
+          "public",
+          "\"public\".\"challengeStatusHistory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.connectedAccount.connectedAccount_userId_fkey",
+    "label": "Add foreign key \"connectedAccount_userId_fkey\" on \"connectedAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "connectedAccount_userId_fkey",
+        "table": "connectedAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"connectedAccount_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "connectedAccount_userId_fkey",
+          "public",
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"connectedAccount_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"connectedAccount\"\nADD CONSTRAINT \"connectedAccount_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"connectedAccount_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "connectedAccount_userId_fkey",
+          "public",
+          "\"public\".\"connectedAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dispute.dispute_challengeId_fkey",
+    "label": "Add foreign key \"dispute_challengeId_fkey\" on \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dispute_challengeId_fkey",
+        "table": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dispute_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dispute_challengeId_fkey",
+          "public",
+          "\"public\".\"dispute\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dispute_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dispute\"\nADD CONSTRAINT \"dispute_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dispute_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dispute_challengeId_fkey",
+          "public",
+          "\"public\".\"dispute\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dispute.dispute_userId_fkey",
+    "label": "Add foreign key \"dispute_userId_fkey\" on \"dispute\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dispute_userId_fkey",
+        "table": "dispute"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dispute_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dispute_userId_fkey",
+          "public",
+          "\"public\".\"dispute\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dispute_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dispute\"\nADD CONSTRAINT \"dispute_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dispute_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dispute_userId_fkey",
+          "public",
+          "\"public\".\"dispute\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.payment.payment_challengeId_fkey",
+    "label": "Add foreign key \"payment_challengeId_fkey\" on \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "payment_challengeId_fkey",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"payment_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_challengeId_fkey",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"payment_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"payment\"\nADD CONSTRAINT \"payment_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"payment_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_challengeId_fkey",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.payment.payment_userId_fkey",
+    "label": "Add foreign key \"payment_userId_fkey\" on \"payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "payment_userId_fkey",
+        "table": "payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"payment_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_userId_fkey",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"payment_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"payment\"\nADD CONSTRAINT \"payment_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"payment_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_userId_fkey",
+          "public",
+          "\"public\".\"payment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.settlement.settlement_challengeId_fkey",
+    "label": "Add foreign key \"settlement_challengeId_fkey\" on \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "settlement_challengeId_fkey",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"settlement_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_challengeId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"settlement_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\"\nADD CONSTRAINT \"settlement_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"settlement_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_challengeId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.settlement.settlement_userId_fkey",
+    "label": "Add foreign key \"settlement_userId_fkey\" on \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "settlement_userId_fkey",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"settlement_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_userId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"settlement_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\"\nADD CONSTRAINT \"settlement_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"settlement_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_userId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.settlement.settlement_transactionId_fkey",
+    "label": "Add foreign key \"settlement_transactionId_fkey\" on \"settlement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "settlement_transactionId_fkey",
+        "table": "settlement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"settlement_transactionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_transactionId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"settlement_transactionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"settlement\"\nADD CONSTRAINT \"settlement_transactionId_fkey\"\nFOREIGN KEY (\"transactionId\")\nREFERENCES \"public\".\"transaction\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"settlement_transactionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "settlement_transactionId_fkey",
+          "public",
+          "\"public\".\"settlement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shareRecord.shareRecord_challengeId_fkey",
+    "label": "Add foreign key \"shareRecord_challengeId_fkey\" on \"shareRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shareRecord_challengeId_fkey",
+        "table": "shareRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shareRecord_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shareRecord_challengeId_fkey",
+          "public",
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shareRecord_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shareRecord\"\nADD CONSTRAINT \"shareRecord_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shareRecord_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shareRecord_challengeId_fkey",
+          "public",
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shareRecord.shareRecord_userId_fkey",
+    "label": "Add foreign key \"shareRecord_userId_fkey\" on \"shareRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shareRecord_userId_fkey",
+        "table": "shareRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shareRecord_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shareRecord_userId_fkey",
+          "public",
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shareRecord_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shareRecord\"\nADD CONSTRAINT \"shareRecord_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shareRecord_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shareRecord_userId_fkey",
+          "public",
+          "\"public\".\"shareRecord\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.submission.submission_challengeId_fkey",
+    "label": "Add foreign key \"submission_challengeId_fkey\" on \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "submission_challengeId_fkey",
+        "table": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"submission_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "submission_challengeId_fkey",
+          "public",
+          "\"public\".\"submission\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"submission_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"submission\"\nADD CONSTRAINT \"submission_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"submission_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "submission_challengeId_fkey",
+          "public",
+          "\"public\".\"submission\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.submission.submission_userId_fkey",
+    "label": "Add foreign key \"submission_userId_fkey\" on \"submission\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "submission_userId_fkey",
+        "table": "submission"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"submission_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "submission_userId_fkey",
+          "public",
+          "\"public\".\"submission\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"submission_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"submission\"\nADD CONSTRAINT \"submission_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"submission_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "submission_userId_fkey",
+          "public",
+          "\"public\".\"submission\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.transaction.transaction_challengeId_fkey",
+    "label": "Add foreign key \"transaction_challengeId_fkey\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "transaction_challengeId_fkey",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"transaction_challengeId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_challengeId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"transaction_challengeId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"transaction\"\nADD CONSTRAINT \"transaction_challengeId_fkey\"\nFOREIGN KEY (\"challengeId\")\nREFERENCES \"public\".\"challenge\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"transaction_challengeId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_challengeId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.transaction.transaction_userId_fkey",
+    "label": "Add foreign key \"transaction_userId_fkey\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "transaction_userId_fkey",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"transaction_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_userId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"transaction_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"transaction\"\nADD CONSTRAINT \"transaction_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"transaction_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_userId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.transaction.transaction_paymentId_fkey",
+    "label": "Add foreign key \"transaction_paymentId_fkey\" on \"transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "transaction_paymentId_fkey",
+        "table": "transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"transaction_paymentId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_paymentId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"transaction_paymentId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"transaction\"\nADD CONSTRAINT \"transaction_paymentId_fkey\"\nFOREIGN KEY (\"paymentId\")\nREFERENCES \"public\".\"payment\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"transaction_paymentId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "transaction_paymentId_fkey",
+          "public",
+          "\"public\".\"transaction\""
+        ]
+      }
+    ]
+  }
+]

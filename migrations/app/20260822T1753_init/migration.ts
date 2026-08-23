@@ -1,0 +1,1106 @@
+#!/usr/bin/env -S node
+import type { Contract as End } from '../../snapshots/e5d167e3cd0837f10139ed6783538485ee0769bd7a8ee70cc66cfac8189e3d47/contract';
+import endContract from '../../snapshots/e5d167e3cd0837f10139ed6783538485ee0769bd7a8ee70cc66cfac8189e3d47/contract.json' with { type: 'json' };
+import {
+  Migration,
+  MigrationCLI,
+  checkExpression,
+  col,
+  fn,
+  lit,
+  primaryKey,
+} from '@prisma/orm-postgres/migration';
+
+export default class M extends Migration<never, End> {
+  override readonly endContractJson = endContract;
+
+  override get operations() {
+    return [
+      this.createSchema({ schema: 'public' }),
+      this.createTable({
+        schema: 'public',
+        table: 'activity',
+        columns: [
+          col('activityType', 'text', {
+            notNull: true,
+            default: lit('OTHER'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('calories', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('challengeId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('connectedAccountId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('distanceMeters', 'numeric', { codecRef: { codecId: 'pg/numeric@1' } }),
+          col('durationSeconds', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('endedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('externalActivityId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('provider', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('raw', 'json', { codecRef: { codecId: 'pg/json@1' } }),
+          col('source', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('sourceKind', 'text', {
+            notNull: true,
+            default: lit('DEVICE_RECORDED'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('startedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('steps', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'activity_activityType_check_e31c05a8',
+            "\"activityType\" IN ('RUN', 'WALK', 'CYCLE', 'SWIM', 'WORKOUT', 'STRENGTH', 'OTHER')",
+          ),
+          checkExpression(
+            'activity_provider_check_9a96a16a',
+            "\"provider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')",
+          ),
+          checkExpression(
+            'activity_sourceKind_check_b628cd5f',
+            "\"sourceKind\" IN ('DEVICE_RECORDED', 'MANUALLY_ENTERED', 'IMPORTED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'auditLog',
+        columns: [
+          col('action', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('actorId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('entityId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('entityType', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('ip', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('metadata', 'json', { codecRef: { codecId: 'pg/json@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'challenge',
+        columns: [
+          col('amount', 'numeric', { notNull: true, codecRef: { codecId: 'pg/numeric@1' } }),
+          col('categoryId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('coverGradient', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('coverImageUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('INR'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('deletedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('durationDays', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('endDate', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('frequencyPerWeek', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('ownerId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('progressPercent', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('progressValue', 'numeric', { codecRef: { codecId: 'pg/numeric@1' } }),
+          col('requirementType', 'text', {
+            notNull: true,
+            default: lit('TOTAL'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('settledAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('startDate', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('startingValue', 'numeric', { codecRef: { codecId: 'pg/numeric@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('DRAFT'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('targetValue', 'numeric', { codecRef: { codecId: 'pg/numeric@1' } }),
+          col('title', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('unit', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('verificationProvider', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('verificationType', 'text', {
+            notNull: true,
+            default: lit('MANUAL'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('visibility', 'text', {
+            notNull: true,
+            default: lit('PUBLIC'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('challenge_currency_check_6ca03d30', "\"currency\" IN ('INR', 'USD')"),
+          checkExpression(
+            'challenge_requirementType_check_078cfbcf',
+            "\"requirementType\" IN ('DAILY', 'TOTAL', 'FREQUENCY')",
+          ),
+          checkExpression(
+            'challenge_status_check_05088bce',
+            "\"status\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')",
+          ),
+          checkExpression(
+            'challenge_verificationProvider_check_3dda4a7f',
+            "\"verificationProvider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')",
+          ),
+          checkExpression(
+            'challenge_verificationType_check_4262913b',
+            "\"verificationType\" IN ('AUTOMATIC', 'MANUAL', 'HYBRID')",
+          ),
+          checkExpression(
+            'challenge_visibility_check_bae0adb7',
+            "\"visibility\" IN ('PUBLIC', 'ANONYMOUS', 'PRIVATE')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'challengeCategory',
+        columns: [
+          col('activityType', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('defaultVerification', 'text', {
+            notNull: true,
+            default: lit('MANUAL'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('label', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('slug', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('sortOrder', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('unit', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'challengeCategory_activityType_check_e31c05a8',
+            "\"activityType\" IN ('RUN', 'WALK', 'CYCLE', 'SWIM', 'WORKOUT', 'STRENGTH', 'OTHER')",
+          ),
+          checkExpression(
+            'challengeCategory_defaultVerification_check_41a92ef2',
+            "\"defaultVerification\" IN ('AUTOMATIC', 'MANUAL', 'HYBRID')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'challengeStatusHistory',
+        columns: [
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('changedById', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('fromStatus', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('note', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('toStatus', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'challengeStatusHistory_fromStatus_check_bf35c4e9',
+            "\"fromStatus\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')",
+          ),
+          checkExpression(
+            'challengeStatusHistory_toStatus_check_54390bb3',
+            "\"toStatus\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'connectedAccount',
+        columns: [
+          col('accessTokenEnc', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('connected', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('lastSyncedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('provider', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('providerUserId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('refreshTokenEnc', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('scopes', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('tokenExpiresAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'connectedAccount_provider_check_9a96a16a',
+            "\"provider\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'dispute',
+        columns: [
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('openedAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('reason', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('resolution', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('resolvedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('resolvedById', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('OPEN'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'dispute_status_check_675564e1',
+            "\"status\" IN ('OPEN', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'fitnessProvider',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('enabled', 'bool', {
+            notNull: true,
+            default: lit(true),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('key', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('name', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'fitnessProvider_key_check_3c1ae973',
+            "\"key\" IN ('STRAVA', 'FITBIT', 'APPLE_HEALTH', 'GOOGLE_HEALTH_CONNECT', 'SAMSUNG_HEALTH')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'payment',
+        columns: [
+          col('amount', 'numeric', { notNull: true, codecRef: { codecId: 'pg/numeric@1' } }),
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('INR'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('idempotencyKey', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('provider', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('providerOrderId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('providerPaymentId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('rawWebhook', 'json', { codecRef: { codecId: 'pg/json@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('PENDING'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('type', 'text', {
+            notNull: true,
+            default: lit('COMMITMENT'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('payment_currency_check_6ca03d30', "\"currency\" IN ('INR', 'USD')"),
+          checkExpression('payment_provider_check_61463170', "\"provider\" IN ('DODO', 'PAYU')"),
+          checkExpression(
+            'payment_status_check_a1a44b14',
+            "\"status\" IN ('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'REWARDED')",
+          ),
+          checkExpression(
+            'payment_type_check_1ee7b6dd',
+            "\"type\" IN ('COMMITMENT', 'REWARD', 'REFUND')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'settlement',
+        columns: [
+          col('amount', 'numeric', { notNull: true, codecRef: { codecId: 'pg/numeric@1' } }),
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('INR'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('idempotencyKey', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('processedById', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('result', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('settledAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('PENDING'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('transactionId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('verifiedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('settlement_currency_check_6ca03d30', "\"currency\" IN ('INR', 'USD')"),
+          checkExpression(
+            'settlement_result_check_e1a094bf',
+            "\"result\" IN ('DRAFT', 'PAYMENT_PENDING', 'ACTIVE', 'AWAITING_VERIFICATION', 'VERIFIED', 'UNDER_REVIEW', 'AWAITING_REVIEW', 'WON', 'LOST', 'DISPUTED', 'SETTLED')",
+          ),
+          checkExpression(
+            'settlement_status_check_541f7571',
+            "\"status\" IN ('PENDING', 'PROCESSING', 'SETTLED', 'FAILED')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'shareRecord',
+        columns: [
+          col('challengeId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('page', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('platform', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('shareType', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('userId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'submission',
+        columns: [
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('dayNumber', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('fileUrl', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('flagged', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('label', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('note', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('reviewedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('reviewedById', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('PENDING'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('type', 'text', {
+            notNull: true,
+            default: lit('PHOTO'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression(
+            'submission_status_check_0760bcc2',
+            "\"status\" IN ('PENDING', 'VERIFIED', 'REJECTED')",
+          ),
+          checkExpression(
+            'submission_type_check_f033ad84',
+            "\"type\" IN ('PHOTO', 'VIDEO', 'SCREENSHOT', 'DOCUMENT', 'ACTIVITY', 'OTHER')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'transaction',
+        columns: [
+          col('amount', 'numeric', { notNull: true, codecRef: { codecId: 'pg/numeric@1' } }),
+          col('challengeId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('INR'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('idempotencyKey', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('note', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('paymentId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('reference', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('SUCCEEDED'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('type', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('userId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('transaction_currency_check_6ca03d30', "\"currency\" IN ('INR', 'USD')"),
+          checkExpression(
+            'transaction_status_check_a1a44b14',
+            "\"status\" IN ('PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'CANCELLED', 'REFUNDED', 'REWARDED')",
+          ),
+          checkExpression(
+            'transaction_type_check_1ee7b6dd',
+            "\"type\" IN ('COMMITMENT', 'REWARD', 'REFUND')",
+          ),
+        ],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user',
+        columns: [
+          col('clerkId', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('country', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('INR'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('deletedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz@1' } }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('role', 'text', {
+            notNull: true,
+            default: lit('USER'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz@1' },
+          }),
+        ],
+        constraints: [
+          primaryKey(['id']),
+          checkExpression('user_currency_check_6ca03d30', "\"currency\" IN ('INR', 'USD')"),
+          checkExpression('user_role_check_1954e8c0', "\"role\" IN ('USER', 'ADMIN')"),
+        ],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'activity',
+        constraint: 'activity_provider_externalActivityId_key',
+        columns: ['provider', 'externalActivityId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'challenge',
+        constraint: 'challenge_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'challengeCategory',
+        constraint: 'challengeCategory_slug_key',
+        columns: ['slug'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'connectedAccount',
+        constraint: 'connectedAccount_userId_provider_key',
+        columns: ['userId', 'provider'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'fitnessProvider',
+        constraint: 'fitnessProvider_key_key',
+        columns: ['key'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'payment',
+        constraint: 'payment_providerPaymentId_key',
+        columns: ['providerPaymentId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'payment',
+        constraint: 'payment_idempotencyKey_key',
+        columns: ['idempotencyKey'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'settlement',
+        constraint: 'settlement_challengeId_key',
+        columns: ['challengeId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'settlement',
+        constraint: 'settlement_transactionId_key',
+        columns: ['transactionId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'settlement',
+        constraint: 'settlement_idempotencyKey_key',
+        columns: ['idempotencyKey'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'transaction',
+        constraint: 'transaction_idempotencyKey_key',
+        columns: ['idempotencyKey'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'user',
+        constraint: 'user_clerkId_key',
+        columns: ['clerkId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'user',
+        constraint: 'user_email_key',
+        columns: ['email'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'activity',
+        index: 'activity_activityType_startedAt_idx_5595c7c7',
+        columns: ['activityType', 'startedAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'activity',
+        index: 'activity_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'activity',
+        index: 'activity_connectedAccountId_idx_2443fc65',
+        columns: ['connectedAccountId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'activity',
+        index: 'activity_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'auditLog',
+        index: 'auditLog_actorId_idx_a58f6b4b',
+        columns: ['actorId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'auditLog',
+        index: 'auditLog_createdAt_idx_9575dbd7',
+        columns: ['createdAt'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'auditLog',
+        index: 'auditLog_entityType_entityId_idx_ea0fa809',
+        columns: ['entityType', 'entityId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_categoryId_idx_15c304f2',
+        columns: ['categoryId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_ownerId_idx_e2d0c1ef',
+        columns: ['ownerId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_status_amount_idx_838e8d6a',
+        columns: ['status', 'amount'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_visibility_idx_01c0466b',
+        columns: ['visibility'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challenge',
+        index: 'challenge_visibility_status_idx_13ecb6bb',
+        columns: ['visibility', 'status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'challengeStatusHistory',
+        index: 'challengeStatusHistory_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'connectedAccount',
+        index: 'connectedAccount_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'dispute',
+        index: 'dispute_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'dispute',
+        index: 'dispute_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'dispute',
+        index: 'dispute_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'payment',
+        index: 'payment_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'payment',
+        index: 'payment_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'payment',
+        index: 'payment_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'settlement',
+        index: 'settlement_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'settlement',
+        index: 'settlement_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'shareRecord',
+        index: 'shareRecord_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'shareRecord',
+        index: 'shareRecord_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'submission',
+        index: 'submission_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'submission',
+        index: 'submission_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'submission',
+        index: 'submission_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'transaction',
+        index: 'transaction_challengeId_idx_73b8115d',
+        columns: ['challengeId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'transaction',
+        index: 'transaction_paymentId_idx_b2fe9a10',
+        columns: ['paymentId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'transaction',
+        index: 'transaction_status_idx_e98638ab',
+        columns: ['status'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'transaction',
+        index: 'transaction_type_idx_b6b604ea',
+        columns: ['type'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'transaction',
+        index: 'transaction_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user',
+        index: 'user_email_idx_46df9cad',
+        columns: ['email'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'user',
+        index: 'user_role_idx_2c1ddf83',
+        columns: ['role'],
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'activity',
+        foreignKey: {
+          name: 'activity_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'activity',
+        foreignKey: {
+          name: 'activity_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'activity',
+        foreignKey: {
+          name: 'activity_connectedAccountId_fkey',
+          columns: ['connectedAccountId'],
+          references: { schema: 'public', table: 'connectedAccount', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'challenge',
+        foreignKey: {
+          name: 'challenge_ownerId_fkey',
+          columns: ['ownerId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'challenge',
+        foreignKey: {
+          name: 'challenge_categoryId_fkey',
+          columns: ['categoryId'],
+          references: { schema: 'public', table: 'challengeCategory', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'challengeStatusHistory',
+        foreignKey: {
+          name: 'challengeStatusHistory_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'connectedAccount',
+        foreignKey: {
+          name: 'connectedAccount_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'dispute',
+        foreignKey: {
+          name: 'dispute_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'dispute',
+        foreignKey: {
+          name: 'dispute_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'payment',
+        foreignKey: {
+          name: 'payment_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'payment',
+        foreignKey: {
+          name: 'payment_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'settlement',
+        foreignKey: {
+          name: 'settlement_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'settlement',
+        foreignKey: {
+          name: 'settlement_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'settlement',
+        foreignKey: {
+          name: 'settlement_transactionId_fkey',
+          columns: ['transactionId'],
+          references: { schema: 'public', table: 'transaction', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'shareRecord',
+        foreignKey: {
+          name: 'shareRecord_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'shareRecord',
+        foreignKey: {
+          name: 'shareRecord_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'submission',
+        foreignKey: {
+          name: 'submission_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'submission',
+        foreignKey: {
+          name: 'submission_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'transaction',
+        foreignKey: {
+          name: 'transaction_challengeId_fkey',
+          columns: ['challengeId'],
+          references: { schema: 'public', table: 'challenge', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'transaction',
+        foreignKey: {
+          name: 'transaction_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'transaction',
+        foreignKey: {
+          name: 'transaction_paymentId_fkey',
+          columns: ['paymentId'],
+          references: { schema: 'public', table: 'payment', columns: ['id'] },
+          onDelete: 'setNull',
+        },
+      }),
+    ];
+  }
+}
+
+MigrationCLI.run(import.meta.url, M);

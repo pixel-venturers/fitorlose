@@ -1,0 +1,12 @@
+.agents
+.claude
+.github
+.next
+node_modules
+.env*
+.gitignore
+AGENTS.md
+
+package-lock.json
+PLAN.md
+README.md

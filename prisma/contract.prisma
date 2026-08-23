@@ -1,0 +1,446 @@
+// use prisma-next
+//
+// FitOrLose data contract (Prisma v8 / @prisma/orm-postgres).
+// - Money is stored as Decimal (Postgres numeric) — never floating point.
+// - Timestamps are UTC (Prisma DateTime); the browser localizes on display.
+// - `deletedAt` marks soft-deletable rows. Admin/actor id fields (reviewedById,
+//   resolvedById, processedById, changedById, actorId) reference User.id by
+//   convention and are intentionally not FK-constrained (auditable across deletes).
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Currency {
+  INR
+  USD
+}
+
+enum Visibility {
+  PUBLIC
+  ANONYMOUS
+  PRIVATE
+}
+
+enum VerificationType {
+  AUTOMATIC
+  MANUAL
+  HYBRID
+}
+
+enum RequirementType {
+  DAILY
+  TOTAL
+  FREQUENCY
+}
+
+enum ChallengeStatus {
+  DRAFT
+  PAYMENT_PENDING
+  SCHEDULED
+  ACTIVE
+  AWAITING_VERIFICATION
+  VERIFIED
+  UNDER_REVIEW
+  AWAITING_REVIEW
+  WON
+  LOST
+  DISPUTED
+  SETTLED
+}
+
+enum ActivityType {
+  RUN
+  WALK
+  CYCLE
+  SWIM
+  WORKOUT
+  STRENGTH
+  OTHER
+}
+
+enum ActivitySource {
+  DEVICE_RECORDED
+  MANUALLY_ENTERED
+  IMPORTED
+}
+
+enum FitnessProviderType {
+  STRAVA
+  FITBIT
+  APPLE_HEALTH
+  GOOGLE_HEALTH_CONNECT
+  SAMSUNG_HEALTH
+}
+
+enum ProofType {
+  PHOTO
+  VIDEO
+  SCREENSHOT
+  DOCUMENT
+  ACTIVITY
+  OTHER
+}
+
+enum SubmissionStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum PaymentProvider {
+  DODO
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+  REWARDED
+}
+
+enum TransactionType {
+  COMMITMENT
+  REWARD
+  REFUND
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  SETTLED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+// ----------------------------------------------------------------------------
+// Identity
+// ----------------------------------------------------------------------------
+model User {
+  id       String   @id @default(uuid())
+  clerkId  String   @unique
+  email    String   @unique
+  name     String?
+  phone    String?
+  role     UserRole @default(USER)
+  currency Currency @default(INR)
+
+  challenges        Challenge[]
+  submissions       Submission[]
+  activities        Activity[]
+  connectedAccounts ConnectedAccount[]
+  payments          Payment[]
+  transactions      Transaction[]
+  settlements       Settlement[]
+  disputes          Dispute[]
+
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+  deletedAt DateTime?
+
+  @@index([email])
+  @@index([role])
+}
+
+// ----------------------------------------------------------------------------
+// Challenge domain
+// ----------------------------------------------------------------------------
+model ChallengeCategory {
+  id                  String              @id @default(uuid())
+  slug                String              @unique
+  label               String
+  description         String?
+  activityType        ActivityType?
+  defaultVerification VerificationType    @default(MANUAL)
+  unit                String?
+  sortOrder           Int                 @default(0)
+  challenges          Challenge[]
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+}
+
+model FitnessProvider {
+  id      String              @id @default(uuid())
+  key     FitnessProviderType @unique
+  name    String
+  enabled Boolean             @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+}
+
+model Challenge {
+  id          String  @id @default(uuid())
+  slug        String  @unique
+  title       String
+  description String?
+
+  ownerId    String
+  owner      User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   ChallengeCategory @relation(fields: [categoryId], references: [id])
+
+  visibility           Visibility           @default(PUBLIC)
+  verificationType     VerificationType     @default(MANUAL)
+  verificationProvider FitnessProviderType?
+
+  requirementType  RequirementType @default(TOTAL)
+  startingValue    Decimal?
+  targetValue      Decimal?
+  unit             String?
+  frequencyPerWeek Int?
+
+  status   ChallengeStatus @default(DRAFT)
+  amount   Decimal
+  currency Currency        @default(INR)
+
+  startDate    DateTime?
+  endDate      DateTime?
+  durationDays Int
+
+  coverImageUrl String?
+  coverGradient String?
+
+  progressPercent Int       @default(0)
+  progressValue   Decimal?
+  settledAt       DateTime?
+
+  submissions   Submission[]
+  activities    Activity[]
+  payments      Payment[]
+  transactions  Transaction[]
+  statusHistory ChallengeStatusHistory[]
+  settlement    Settlement?
+  disputes      Dispute[]
+
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+  deletedAt DateTime?
+
+  @@index([ownerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([visibility])
+  @@index([status, amount])
+  @@index([visibility, status])
+}
+
+model ChallengeStatusHistory {
+  id          String           @id @default(uuid())
+  challengeId String
+  challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  fromStatus  ChallengeStatus?
+  toStatus    ChallengeStatus
+  note        String?
+  changedById String?
+  createdAt   DateTime         @default(now())
+
+  @@index([challengeId])
+}
+
+model Submission {
+  id          String           @id @default(uuid())
+  challengeId String
+  challenge   Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ProofType        @default(PHOTO)
+  status      SubmissionStatus @default(PENDING)
+  fileUrl     String?
+  label       String?
+  note        String?
+  dayNumber   Int?
+  flagged     Boolean          @default(false)
+  reviewedById String?
+  reviewedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([challengeId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Activity {
+  id                 String               @id @default(uuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId        String?
+  challenge          Challenge?           @relation(fields: [challengeId], references: [id], onDelete: SetNull)
+  connectedAccountId String?
+  connectedAccount   ConnectedAccount?    @relation(fields: [connectedAccountId], references: [id], onDelete: SetNull)
+  provider           FitnessProviderType?
+  externalActivityId String?
+  activityType       ActivityType         @default(OTHER)
+  startedAt          DateTime
+  endedAt            DateTime?
+  durationSeconds    Int?
+  distanceMeters     Decimal?
+  steps              Int?
+  calories           Int?
+  source             String?
+  sourceKind         ActivitySource       @default(DEVICE_RECORDED)
+  flagged            Boolean              @default(false)
+  flagReason         String?
+  raw                Json?
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, externalActivityId])
+  @@index([userId])
+  @@index([challengeId])
+  @@index([activityType, startedAt])
+}
+
+model ConnectedAccount {
+  id              String              @id @default(uuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        FitnessProviderType
+  providerUserId  String?
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  tokenExpiresAt  DateTime?
+  scopes          String?
+  connected       Boolean             @default(true)
+  lastSyncedAt    DateTime?
+  activities      Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+// ----------------------------------------------------------------------------
+// Money: payments, ledger, settlements
+// ----------------------------------------------------------------------------
+model Payment {
+  id                String          @id @default(uuid())
+  challengeId       String
+  challenge         Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          PaymentProvider
+  providerPaymentId String?         @unique
+  providerOrderId   String?
+  type              TransactionType @default(COMMITMENT)
+  amount            Decimal
+  currency          Currency        @default(INR)
+  status            PaymentStatus   @default(PENDING)
+  idempotencyKey    String          @unique
+  rawWebhook        Json?
+  phone             String?
+  billingAddress    Json?
+  transactions      Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([challengeId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Transaction {
+  id             String          @id @default(uuid())
+  challengeId    String
+  challenge      Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId      String?
+  payment        Payment?        @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  type           TransactionType
+  amount         Decimal
+  currency       Currency        @default(INR)
+  status         PaymentStatus   @default(SUCCEEDED)
+  reference      String?
+  idempotencyKey String          @unique
+  note           String?
+  settlement     Settlement?
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([userId])
+  @@index([challengeId])
+  @@index([type])
+  @@index([status])
+}
+
+model Settlement {
+  id             String           @id @default(uuid())
+  challengeId    String           @unique
+  challenge      Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Decimal
+  currency       Currency         @default(INR)
+  result         ChallengeStatus
+  status         SettlementStatus @default(PENDING)
+  transactionId  String?          @unique
+  transaction    Transaction?     @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  processedById  String?
+  idempotencyKey String           @unique
+  verifiedAt     DateTime?
+  settledAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// Disputes, audit
+// ----------------------------------------------------------------------------
+model Dispute {
+  id           String        @id @default(uuid())
+  challengeId  String
+  challenge    Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason       String
+  status       DisputeStatus @default(OPEN)
+  resolution   String?
+  resolvedById String?
+  openedAt     DateTime      @default(now())
+  resolvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([challengeId])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+}
