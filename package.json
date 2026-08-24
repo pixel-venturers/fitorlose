@@ -9,12 +9,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "contract:emit": "npx --yes prisma@next contract emit --config prisma.config.js",
-    "db:update": "npx --yes prisma@next db update --config prisma.config.js",
-    "db:verify": "npx --yes prisma@next db verify --config prisma.config.js",
+    "contract:emit": "npx --yes prisma@8.0.0-rc.7 contract emit --config prisma.config.js",
+    "db:update": "npx --yes prisma@8.0.0-rc.7 db update --config prisma.config.js",
+    "db:verify": "npx --yes prisma@8.0.0-rc.7 db verify --config prisma.config.js",
     "db:seed": "node --env-file=.env.local prisma/seed.js",
-    "migrate:plan": "npx --yes prisma@next migration plan --config prisma.config.js",
-    "migrate": "npx --yes prisma@next migrate --config prisma.config.js",
+    "migrate:plan": "npx --yes prisma@8.0.0-rc.7 migration plan --config prisma.config.js",
+    "migrate": "npx --yes prisma@8.0.0-rc.7 migrate --config prisma.config.js",
     "format": "prettier --write \"**/*.{js,jsx,mdx}\" --cache"
   },
   "dependencies": {
