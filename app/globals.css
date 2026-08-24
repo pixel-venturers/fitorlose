@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@clerk/ui/themes/shadcn.css";
+@source "../node_modules/components";
 
 @plugin "@tailwindcss/typography";
 
