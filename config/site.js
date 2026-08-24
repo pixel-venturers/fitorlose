@@ -4,12 +4,12 @@
 
 export const SITE = {
   name: "FitOrLose",
-  tagline: "Put money behind your fitness goal.",
+  tagline: "Put commitment behind your fitness goal.",
   description:
     "FitOrLose is a fitness commitment platform. Put real money behind a measurable fitness goal — complete it and win, fail and lose your commitment.",
-  url: "https://fitorlose.com",
+  url: "https://fitorlose.lol",
   ogImage: "/og.png",
-  supportEmail: "hello@fitorlose.com",
+  supportEmail: "contact@fitorlose.lol",
 };
 
 // The studio that builds & maintains FitOrLose (subtle credit in the footer).

@@ -8,7 +8,6 @@ import { ArrowRight, CalendarDays, Wallet } from "lucide-react";
 import { CURRENCY, VERIFICATION_TYPE_META } from "@/lib/constants";
 import { formatCurrency } from "@/lib/formatters";
 import { getActiveChallengesByCategory } from "@/lib/queries/challenges";
-import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { ChallengeCard } from "@/components/challenge/ChallengeCard";
@@ -24,10 +23,23 @@ export async function generateMetadata({ params }) {
   const { category: slug } = await params;
   const category = getCategory(slug);
   if (!category) return { title: "Fitness Challenges" };
+  const title = `${category.label} Challenges`;
+  const description = `${category.description} Put real money behind your ${category.label.toLowerCase()} goal.`;
+  const url = `/fitness-challenges/${slug}`;
+  const images = category.ogImage
+    ? [{ url: category.ogImage, alt: title }]
+    : undefined;
   return {
-    title: `${category.label} Challenges`,
-    description: `${category.description} Put real money behind your ${category.label.toLowerCase()} goal.`,
-    alternates: { canonical: `/fitness-challenges/${slug}` },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", title, description, url, images },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: category.ogImage ? [category.ogImage] : undefined,
+    },
   };
 }
 
@@ -42,18 +54,16 @@ export default async function Page({ params }) {
   return (
     <Container className="py-12 sm:py-16">
       <div
-        className={cn(
-          "ring-foreground/10 relative overflow-hidden rounded-2xl bg-linear-to-br p-8 ring-1 sm:p-12",
-          category.gradient
-        )}
+        className="ring-foreground/10 relative overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat p-8 ring-1 sm:p-12"
+        style={{ backgroundImage: `url(${category.coverImage})` }}
       >
         <div className="bg-background/40 text-foreground grid size-12 place-items-center rounded-xl backdrop-blur">
           <Icon name={category.icon} className="size-6" />
         </div>
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-balance text-shadow-lg sm:text-4xl">
           {category.label} challenges
         </h1>
-        <p className="text-muted-foreground mt-3 max-w-xl text-pretty">
+        <p className="text-foreground mt-3 max-w-xl text-pretty text-shadow-md">
           {category.description}
         </p>
         <div className="mt-6">

@@ -11,10 +11,10 @@ export default function manifest() {
     background_color: "#09090b",
     theme_color: "#09090b",
     icons: [
-      { src: "/logo.svg", type: "image/svg+xml", sizes: "any" },
-      { src: "/logo-sm.png", type: "image/png", sizes: "512x512" },
-      { src: "/logo-md.png", type: "image/png", sizes: "1024x1024" },
-      { src: "/logo-lg.png", type: "image/png", sizes: "2048x2048" },
+      { "src": "/logo.svg", type: "image/svg+xml", sizes: "any" },
+      { "src": "/logo.png", type: "image/png", sizes: "256x256" },
+      { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+      { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
     ],
   };
 }

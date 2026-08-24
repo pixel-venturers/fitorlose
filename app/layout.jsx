@@ -28,13 +28,26 @@ export const metadata = {
     template: `%s · ${SITE.name}`,
   },
   description: SITE.description,
+  category: "fitness",
   applicationName: SITE.name,
+  generator: "InitiateJS.dev",
+  creator: "Pixel Venturers",
+  publisher: "Pixel Venturers",
+  authors: [{ name: "Pixel Venturers", url: "https://webdesignagencylab.com" }],
   keywords: [
     "fitness challenge",
+    "swimming challenge",
+    "running challenge",
+    "walking challenge",
+    "strength challenge",
+    "cycling challenge",
+    "leaderboard",
     "commitment device",
     "weight loss challenge",
     "running challenge",
     "put money on fitness goals",
+    "put commitment on fitness goals",
+    "commitment on fitness goals",
   ],
   openGraph: {
     type: "website",
@@ -42,13 +55,21 @@ export const metadata = {
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
     url: SITE.url,
+    images: [
+      {
+        url: SITE.url + SITE.ogImage,
+        alt: SITE.name + " — " + SITE.tagline,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
+    images: [SITE.url + SITE.ogImage],
+    creator: "@Pixel_Venturers",
   },
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/favicon.ico", apple: "/apple-icon.png", shortcut: "/favicon-16x16.png" },
 };
 
 export const viewport = {
@@ -65,7 +86,7 @@ const structuredData = {
       "@id": `${SITE.url}/#organization`,
       name: SITE.name,
       url: SITE.url,
-      logo: `${SITE.url}/logo-lg.png`,
+      logo: `${SITE.url}/logo.png`,
       description: SITE.description,
     },
     {
