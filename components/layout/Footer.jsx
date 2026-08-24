@@ -41,20 +41,6 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-3">
             <span>Commitments are real. Play responsibly.</span>
-            <span className="text-border hidden sm:inline" aria-hidden>
-              ·
-            </span>
-            <span>
-              Crafted by{" "}
-              <Link
-                href={AGENCY.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground/80 hover:text-primary font-medium transition-colors"
-              >
-                {AGENCY.name}
-              </Link>
-            </span>
           </div>
         </div>
       </Container>

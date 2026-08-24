@@ -53,24 +53,46 @@ const COVERS = [
 // sessionStorage key: carries a half-filled create across the sign-in modal.
 const PENDING_CREATE_KEY = "fol_pending_challenge";
 
+// Local calendar day as YYYY-MM-DD — used as the min selectable start date.
+function todayString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function FieldError({ message }) {
   if (!message) return null;
   return <p className="mt-1.5 text-xs text-red-400">{message}</p>;
 }
 
-function SelectableCard({ selected, onClick, icon, title, description }) {
+function SelectableCard({
+  selected,
+  onClick,
+  icon,
+  title,
+  description,
+  disabled,
+  badge,
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-pressed={selected}
       className={cn(
-        "flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
-        selected
-          ? "border-primary bg-primary/10 ring-primary/40 ring-1"
-          : "border-border bg-card/40 hover:bg-muted/50"
+        "relative flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+        disabled
+          ? "border-border bg-card/40 cursor-not-allowed opacity-50"
+          : selected
+            ? "border-primary bg-primary/10 ring-primary/40 ring-1"
+            : "border-border bg-card/40 hover:bg-muted/50"
       )}
     >
+      {badge ? (
+        <span className="bg-muted text-muted-foreground absolute top-2 right-2 rounded-full px-2 py-0.5 text-[10px] font-medium">
+          {badge}
+        </span>
+      ) : null}
       <span className="flex items-center gap-2 text-sm font-medium">
         {icon ? <Icon name={icon} className="size-4" /> : null}
         {title}
@@ -95,10 +117,7 @@ export function ChallengeForm({ initial }) {
   const [durationDays, setDurationDays] = useState(
     initial?.durationDays || String(MIN_CHALLENGE_DAYS)
   );
-  const [startDate, setStartDate] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  });
+  const [startDate, setStartDate] = useState(todayString);
   const [currency, setCurrency] = useState(
     initial?.currency === CURRENCY.USD ? CURRENCY.USD : CURRENCY.INR
   );
@@ -107,7 +126,7 @@ export function ChallengeForm({ initial }) {
   const [verification, setVerification] = useState(
     Object.values(VERIFICATION_TYPE).includes(initial?.verification)
       ? initial.verification
-      : VERIFICATION_TYPE.AUTOMATIC
+      : VERIFICATION_TYPE.MANUAL
   );
   const [provider, setProvider] = useState(PROVIDER_OPTIONS[0]?.slug);
   const [cover, setCover] = useState(0);
@@ -181,7 +200,11 @@ export function ChallengeForm({ initial }) {
     ) {
       next.duration = `Duration must be between ${MIN_CHALLENGE_DAYS} and ${MAX_CHALLENGE_DAYS} days.`;
     }
-    if (!startDate) next.startDate = "Choose a start date.";
+    if (!startDate) {
+      next.startDate = "Choose a start date.";
+    } else if (startDate < todayString()) {
+      next.startDate = "Start date can't be in the past.";
+    }
     return next;
   }
 
@@ -233,7 +256,7 @@ export function ChallengeForm({ initial }) {
     setCurrency(snap.currency ?? CURRENCY.INR);
     setAmount(snap.amount ?? "");
     setVisibility(snap.visibility ?? VISIBILITY.PUBLIC);
-    setVerification(snap.verification ?? VERIFICATION_TYPE.AUTOMATIC);
+    setVerification(snap.verification ?? VERIFICATION_TYPE.MANUAL);
     setProvider(snap.provider ?? PROVIDER_OPTIONS[0]?.slug);
     setCover(snap.cover ?? 0);
     setCoverUrl(snap.coverUrl ?? "");
@@ -471,6 +494,7 @@ export function ChallengeForm({ initial }) {
               <Input
                 id="start"
                 type="date"
+                min={todayString()}
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
                 className="mt-1.5"
@@ -555,20 +579,25 @@ export function ChallengeForm({ initial }) {
             <CardTitle>Verification</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-3">
-              {Object.values(VERIFICATION_TYPE).map((value) => {
-                const meta = VERIFICATION_TYPE_META[value];
-                return (
-                  <SelectableCard
-                    key={value}
-                    selected={verification === value}
-                    onClick={() => setVerification(value)}
-                    icon={meta.icon}
-                    title={meta.label}
-                    description={meta.description}
-                  />
-                );
-              })}
+            <div className="grid gap-2 sm:grid-cols-2">
+              {Object.values(VERIFICATION_TYPE)
+                .filter((value) => value !== VERIFICATION_TYPE.HYBRID)
+                .map((value) => {
+                  const meta = VERIFICATION_TYPE_META[value];
+                  const comingSoon = value === VERIFICATION_TYPE.AUTOMATIC;
+                  return (
+                    <SelectableCard
+                      key={value}
+                      selected={verification === value}
+                      onClick={() => setVerification(value)}
+                      icon={meta.icon}
+                      title={meta.label}
+                      description={meta.description}
+                      disabled={comingSoon}
+                      badge={comingSoon ? "Coming soon" : null}
+                    />
+                  );
+                })}
             </div>
             {usesProvider ? (
               <div>

@@ -288,7 +288,7 @@ export default async function Page({ params, searchParams }) {
                   <p className="text-muted-foreground mt-1 text-sm">
                     The commitment of{" "}
                     {formatCurrency(challenge.amount, challenge.currency)} was
-                    returned as a reward.
+                    rewarded.
                     {challenge.refundTxnId
                       ? ` Transaction ${challenge.refundTxnId}.`
                       : ""}
