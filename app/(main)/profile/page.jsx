@@ -31,6 +31,8 @@ export default async function Page() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in?redirect_url=/profile");
 
+  const avatarUrl = user.imageUrl ?? null;
+
   const [stats, challenges, accountRows] = await Promise.all([
     getUserProfileStats(user.id),
     getUserChallenges(user.id, user),
@@ -63,6 +65,7 @@ export default async function Page() {
     <Container className="py-12 sm:py-16">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <UserAvatar
+          src={avatarUrl}
           initials={initialsOf(user.name)}
           gradient="from-sky-500 to-indigo-600"
           size="xl"

@@ -386,7 +386,7 @@ export default async function Page({ params, searchParams }) {
                   </MetaRow>
                 ) : null}
                 <MetaRow label="Verification">{verificationMeta.label}</MetaRow>
-                <MetaRow label="Source">{challenge.verificationSource}</MetaRow>
+                {/* <MetaRow label="Source">{challenge.verificationSource}</MetaRow> */}
                 <MetaRow label="Visibility">{visibilityMeta.label}</MetaRow>
               </div>
               <ShareButton

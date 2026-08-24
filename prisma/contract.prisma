@@ -134,6 +134,7 @@ model User {
   clerkId  String   @unique
   email    String   @unique
   name     String?
+  imageUrl String?
   phone    String?
   role     UserRole @default(USER)
   currency Currency @default(INR)
