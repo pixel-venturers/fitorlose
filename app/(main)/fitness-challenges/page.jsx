@@ -21,7 +21,7 @@ export default function Page() {
       />
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CHALLENGE_CATEGORIES.map((category) => (
-          <CategoryTile key={category.slug} category={category} />
+          <CategoryTile key={category.slug} category={category} glow={false} />
         ))}
       </div>
     </Container>

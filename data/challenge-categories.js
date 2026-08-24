@@ -24,7 +24,8 @@ export const CHALLENGE_CATEGORIES = [
       "Commit to a measurable weight-loss target and verify your result with progress photos and weigh-ins.",
     example: "Lose 5 kg in 90 days",
     ctaLabel: "Challenge me to lose weight",
-    coverImage: "/covers/weight-loss.jpg",
+    coverImage: "/cover/weight.png",
+    ogImage: "/og/weight.png",
   },
   {
     slug: "running",
@@ -42,7 +43,8 @@ export const CHALLENGE_CATEGORIES = [
       "Run a distance or a daily duration. Connect Strava or another provider and your runs verify themselves.",
     example: "Run 45 minutes daily for 60 days",
     ctaLabel: "Challenge me to start running",
-    coverImage: "/covers/running.jpg",
+    coverImage: "/cover/run.png",
+    ogImage: "/og/run.png",
   },
   {
     slug: "cycling",
@@ -60,7 +62,8 @@ export const CHALLENGE_CATEGORIES = [
       "Ride a cumulative distance or a recurring duration, automatically verified from your connected device.",
     example: "Cycle 500 km within 90 days",
     ctaLabel: "Challenge me to ride further",
-    coverImage: "/covers/cycling.jpg",
+    coverImage: "/cover/cycle.png",
+    ogImage: "/og/cycle.png",
   },
   {
     slug: "swimming",
@@ -78,7 +81,8 @@ export const CHALLENGE_CATEGORIES = [
       "Swim a total distance or a recurring session length, verified from supported wearables.",
     example: "Swim 30 minutes daily for 30 days",
     ctaLabel: "Challenge me to swim more",
-    coverImage: "/covers/swimming.jpg",
+    coverImage: "/cover/swim.png",
+    ogImage: "/og/swim.png",
   },
   {
     slug: "walking",
@@ -96,7 +100,8 @@ export const CHALLENGE_CATEGORIES = [
       "Hit a daily step target, automatically verified from your phone or watch.",
     example: "Walk 10,000 steps for 60 days",
     ctaLabel: "Challenge me to get better",
-    coverImage: "/covers/walking.jpg",
+    coverImage: "/cover/walk.png",
+    ogImage: "/og/walk.png",
   },
   {
     slug: "gym",
@@ -114,7 +119,8 @@ export const CHALLENGE_CATEGORIES = [
       "Complete a daily workout duration or weekly frequency, verified from your fitness app.",
     example: "Work out 45 minutes daily for 30 days",
     ctaLabel: "Challenge me to be in better shape",
-    coverImage: "/covers/gym.jpg",
+    coverImage: "/cover/gym.png",
+    ogImage: "/og/gym.png",
   },
   {
     slug: "strength",
@@ -132,7 +138,8 @@ export const CHALLENGE_CATEGORIES = [
       "Train a set number of sessions per week. Fitness data plus manual proof keeps it honest.",
     example: "Strength train 4x per week for 12 weeks",
     ctaLabel: "Challenge me to get stronger",
-    coverImage: "/covers/strength.jpg",
+    coverImage: "/cover/strength.png",
+    ogImage: "/og/strength.png",
   },
 ];
 
